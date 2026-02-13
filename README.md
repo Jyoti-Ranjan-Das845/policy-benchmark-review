@@ -8,11 +8,15 @@ This repository standardizes deep review of research papers using a 7-step analy
 - `papers/<slug>/paper.pdf`: source paper
 - `papers/<slug>/paper.txt`: extracted text (optional but recommended)
 - `papers/<slug>/meta.yaml`: metadata
-- `papers/<slug>/01_intent.md` ... `07_synthesis.md`: deep analysis files
+- `papers/<slug>/01_intent.md` ... `07_synthesis.md`: research analysis files
+- `papers/<slug>/08_engineering_internals.md`: benchmark internals from an engineering view
+- `papers/<slug>/09_mermaid_diagrams.md`: benchmark-specific mermaid architecture and sequence diagrams
+- `papers/<slug>/10_metric_semantics.md`: metric meaning, blind spots, and gaming risks
+- `papers/<slug>/11_adopt_adapt_reject.md`: implementation decision table
 - `templates/`: reusable markdown templates
 - `scripts/`: ingestion/download/extraction/review/status scripts
 
-## 7-Step Analysis Files
+## Core Analysis Files
 
 1. `01_intent.md`
 2. `02_argument_map.md`
@@ -21,6 +25,13 @@ This repository standardizes deep review of research papers using a 7-step analy
 5. `05_validity_blindspots.md`
 6. `06_local_positioning.md`
 7. `07_synthesis.md`
+
+## Engineering Add-On Files
+
+1. `08_engineering_internals.md`
+2. `09_mermaid_diagrams.md`
+3. `10_metric_semantics.md`
+4. `11_adopt_adapt_reject.md`
 
 ## Quick Start
 
@@ -60,11 +71,35 @@ make analyze-parallel WORKERS=4
 make status
 ```
 
+7. Backfill engineering templates for existing papers:
+
+```bash
+make backfill-engineering
+```
+
+8. Run engineering add-on analysis for one paper:
+
+```bash
+make analyze-engineering PAPER=constitutional-ai
+```
+
+9. Run engineering add-on analysis in parallel:
+
+```bash
+make analyze-engineering-parallel WORKERS=3
+```
+
+10. See engineering add-on status:
+
+```bash
+make status-engineering
+```
+
 ## Collaboration Model
 
 - One PR per paper folder.
 - Set `owner` in `papers/index.csv`.
-- Merge only if all 7 markdown files are present and meaningful.
+- Merge only if all required markdown files are present and meaningful.
 - CI validates structure on push/PR.
 
 ## Publishing to Remote (GitHub)

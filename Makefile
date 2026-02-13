@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: ingest fetch extract analyze analyze-parallel status validate
+.PHONY: ingest fetch extract analyze analyze-parallel status backfill-engineering analyze-engineering analyze-engineering-parallel status-engineering validate
 
 # Usage:
 # make ingest SLUG=paper-slug TITLE="Paper Title" URL="https://...pdf" YEAR=2025 OWNER=name NOTES="optional"
@@ -26,5 +26,18 @@ analyze-parallel:
 status:
 	./scripts/status_report.sh
 
+backfill-engineering:
+	./scripts/backfill_engineering_templates.sh
+
+analyze-engineering:
+	@test -n "$(PAPER)" || (echo "PAPER is required" && exit 1)
+	./scripts/review_engineering_one_paper.sh "$(PAPER)"
+
+analyze-engineering-parallel:
+	./scripts/run_parallel_engineering_review.sh "$(WORKERS)"
+
+status-engineering:
+	./scripts/status_report_engineering.sh
+
 validate:
-	bash -lc 'for d in papers/*; do [[ -d "$$d" ]] || continue; for f in 01_intent.md 02_argument_map.md 03_pipeline.md 04_evidence_audit.md 05_validity_blindspots.md 06_local_positioning.md 07_synthesis.md meta.yaml; do [[ -f "$$d/$$f" ]] || { echo "Missing $$d/$$f"; exit 1; }; done; done; echo "Structure OK"'
+	bash -lc 'for d in papers/*; do [[ -d "$$d" ]] || continue; for f in 01_intent.md 02_argument_map.md 03_pipeline.md 04_evidence_audit.md 05_validity_blindspots.md 06_local_positioning.md 07_synthesis.md 08_engineering_internals.md 09_mermaid_diagrams.md 10_metric_semantics.md 11_adopt_adapt_reject.md meta.yaml; do [[ -f "$$d/$$f" ]] || { echo "Missing $$d/$$f"; exit 1; }; done; done; echo "Structure OK"'

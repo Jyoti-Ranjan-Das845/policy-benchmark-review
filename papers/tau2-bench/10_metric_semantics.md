@@ -1,0 +1,19 @@
+# 10 Metric Semantics
+
+## Metric Audit Table
+| Metric | What It Measures | What It Misses | Failure/Gaming Modes | Evidence Source |
+|---|---|---|---|---|
+| `pass^k` (domain-level) | Probability that an agent succeeds within k deterministic trials; used to compare telecom vs legacy retail/airline and show telecom difficulty (e.g., gpt-4.1 pass^1 drops to 34% vs 74% retail, 56% airline) | Aggregates diverse failure causes (reasoning, coordination, persona difficulty) and depends on task sampling | Inflating redundancy by rerunning until success or curating easier task mix per domain | [paper.txt:382-465] |
+| Mode-specific `pass^1` (Default, No-User, Oracle Plan) | Separates reasoning vs coordination load: e.g., gpt-4.1 improves from 0.34 (Default) → 0.52 (No-User) → 0.73 (Oracle Plan), quantifying dual-control friction | Still single-number view per mode—no insight into which dialogue turns failed or why Oracle Plan still mis-executes | Agents could overfit to Oracle Plan prompts or memorize plan-length priors instead of learning to guide users | [paper.txt:468-518] |
+| Action-count binned `pass^1` | Sensitivity of success to plan length (scores drop near zero for >7 actions in Default mode, gap vs No-User shrinks as horizon grows) | Does not reflect qualitative difficulty (some 3-step tasks may be harder than 5-step ones) and bins depend on specific telecom generator | Gaming possible by designing evaluation suites that cap action sequences to keep scores high | [paper.txt:575-585] |
+| Issue-type `pass^k` | Highlights hierarchy of intents (service_issue easiest, mobile_data_issue/mms_issue materially harder across models) so teams can target weakest procedures | Inter-issue dependencies can blur attribution—success on `mobile_data_issue` may require diagnosing underlying `service_issue`, so isolation is imperfect | Could cherry-pick subsets (e.g., only score on service_issue) to claim inflated reliability | [paper.txt:588-638] |
+| User-simulator error rate | Measures benchmark infrastructure reliability (telecom simulator 16% total errors, 6% critical vs 40–47%/12–13% in retail/airline) and justifies dual-control tooling | Does not quantify how remaining benign errors bias pass^k or whether simulator adheres to persona tone | Reporting only low error counts without describing severity thresholds might hide systematic drifts | [paper.txt:151-157][paper.txt:790-817] |
+
+## Calibration Notes
+- Relationship between metric score and real-world performance: telecom `pass^1` ≈0.34 for gpt-4.1 despite 0.74 on simpler retail tasks, illustrating that real dual-control workflows produce >20 point degradations when humans share control; No-User vs Default deltas isolate communication-induced losses relevant to live troubleshooting deployments [paper.txt:382-585].
+- Known threshold effects: Success collapses when action sequences exceed seven steps or when multiple issue types combine, so maintaining pass^k above ~0.3 implicitly requires capping diagnostic depth; persona shifts (Easy vs Hard) also move pass^k by ~0.1–0.15, indicating thresholds tied to user capability [paper.txt:575-789].
+
+## Metric Reliability Risks
+1. Task sampling sensitivity—changing the mix of intents, personas, or action-length bins materially changes pass^k (telecom vs retail gap, persona deltas), so comparisons require matched distributions [paper.txt:382-789].
+2. Oracle Plan scores depend on ground-truth traces being correct; any generator bug in solution scripts would inflate coordination metrics while hiding reasoning regressions [paper.txt:320-346][paper.txt:468-518].
+3. User simulator quality, though improved, still exhibits 16% errors; undetected critical errors could either block completion or unintentionally help the agent, thus biasing both pass^k and ablation interpretations [paper.txt:151-157][paper.txt:790-817].

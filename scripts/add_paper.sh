@@ -40,6 +40,10 @@ cp "$repo_root/templates/04_evidence_audit.md" "$paper_dir/04_evidence_audit.md"
 cp "$repo_root/templates/05_validity_blindspots.md" "$paper_dir/05_validity_blindspots.md"
 cp "$repo_root/templates/06_local_positioning.md" "$paper_dir/06_local_positioning.md"
 cp "$repo_root/templates/07_synthesis.md" "$paper_dir/07_synthesis.md"
+cp "$repo_root/templates/08_engineering_internals.md" "$paper_dir/08_engineering_internals.md"
+cp "$repo_root/templates/09_mermaid_diagrams.md" "$paper_dir/09_mermaid_diagrams.md"
+cp "$repo_root/templates/10_metric_semantics.md" "$paper_dir/10_metric_semantics.md"
+cp "$repo_root/templates/11_adopt_adapt_reject.md" "$paper_dir/11_adopt_adapt_reject.md"
 
 printf '%s,"%s",%s,%s,%s,%s,"%s"\n' "$slug" "$title" "$url" "$year" "$owner" "$status" "$notes" >> "$repo_root/papers/index.csv"
 
