@@ -1,0 +1,20 @@
+# 03 Method and Evaluation Pipeline
+
+## System Pipeline
+- Inputs: Tool schemas and API simulators adapted from ToolEmu for financial, tele-health, and smart home domains plus raw regulatory text (PSD2, HIPAA Security Rule, ETSI EN 303 645) (Section 4.1).
+- Policy representation: Regulations distilled into atomic predicates, then forced into two Linear Temporal Logic over finite traces templates—operational restriction ¬((¬P1) U P2) and instruction adherence □(P1 → ◇P2)—after scope alignment, deduplication, and signature validation (Section 3.2).
+- Agent/planner components: GPT-5-Mini used for policy extraction and instruction synthesis; custom safety-constrained fuzzer (~3.6K LoC) performing bottom-up DFS with dual-constraint pruning (schema + LTL monitors) to generate compliant traces τ*; masking function M that removes safety actions and a drafting/critique LLM pair to produce Goal or Workflow instructions (Sections 3.3–3.4).
+- Tools/environment: Executable sandbox with API state transitions, runtime LTL monitor, and human-verified oracle library; tasks encoded as (instruction, target state S*, oracle Φ_task) tuples (Sections 3 & 4).
+- Output/action: LOGISAFETYBENCH, 240 human-validated tasks (120 goal/workflow pairs) where functional traces are solvable but safety steps are hidden inside Φ_task (Section 4.2).
+
+## Evaluation Pipeline
+- Dataset/task source: Generated via LOGISAFETYGEN with acceptance rates of 73.9% for oracles and 70.6% for masked traces, yielding 40 paired test cases per domain (Section 4.2).
+- Policy/constraint setup: Each evaluation initializes the tested LLM with the API schema, raw regulatory excerpts (P_txt), and the masked instruction; compliance judged by hidden LTL monitors plus functional state comparison (Section 5.1).
+- Baselines: For generator evaluation—GPT-5-Mini prompted to synthesize traces; for agent evaluation—13 LLMs (GPT-5 family, Gemini variants, DeepSeek-R1-Qwen-14B, Llama-3.1-8B, etc.) with eight highlighted in the main text (Sections 5.1–5.3).
+- Metrics/judging: Safety-critical API coverage and Adjacent Transition Coverage (ATC) for trace diversity (Section 5.2, Table 2); Pass@1 safe success rate plus risk categorization into safe success, benign failure, unsafe failure, unsafe success (Figure 2); failure taxonomy covering syntax, semantic, instruction adherence, operational restriction mistakes (Figure 3).
+- Reported outcomes: Logic-guided fuzzer attains 100% safety API coverage and higher ATC vs GPT-5-Mini in all domains (Table 2); frontier models outperform but still incur unsafe successes—e.g., GPT-5 drops from 75% to 28% Pass@1 when moving from workflow to goal prompts in Smart Home IoT (Figure 2); Gemini-Pro shows 57% instruction-adherence violations in tele-health goal tasks (Figure 3).
+
+## Stage-by-Stage Analysis
+- Stage 1 – Automated Safety Oracle Construction (Section 3.2): Exists to close the Ambiguity Gap by grounding free-form policy text; key design choice is the dual-template LTL restriction plus signature validation to avoid hallucinated predicates; likely failure point is under-specification—complex regulations that require richer temporal patterns may be misrepresented or dropped.
+- Stage 2 – Logic-Guided Trace Generation (Section 3.3): Addresses the Validity Gap by using bottom-up DFS with runtime schema + LTL pruning; key choice is Lazy Evaluation so only next-step constraints are solved; likely failure point is combinatorial blow-up in high-density API spaces, which could limit trace diversity or miss rare sequences despite pruning.
+- Stage 3 – Safety Masking & Instruction Synthesis (Section 3.4): Targets the Inference Gap by removing safety steps and producing both goal-oriented and workflow prompts via a generate–critique LLM loop; key choice is splitting instructions into goal vs workflow typologies to stress planning vs obedience; likely failure point is inconsistent masking where residual hints or over-masking either leak safety requirements or render tasks unsolvable.

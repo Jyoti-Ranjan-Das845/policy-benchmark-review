@@ -14,10 +14,26 @@ if [[ ! -f "$index_csv" ]]; then
   exit 1
 fi
 
+to_pdf_url() {
+  local raw_url="$1"
+  local normalized="$raw_url"
+
+  if [[ "$raw_url" =~ ^https?://arxiv\.org/abs/([0-9]+\.[0-9]+)$ ]]; then
+    normalized="https://arxiv.org/pdf/${BASH_REMATCH[1]}.pdf"
+  elif [[ "$raw_url" =~ ^https?://aclanthology\.org/.+/$ ]]; then
+    normalized="${raw_url%/}.pdf"
+  elif [[ "$raw_url" =~ ^https?://aclanthology\.org/.+$ ]] && [[ ! "$raw_url" =~ \.pdf$ ]]; then
+    normalized="${raw_url}.pdf"
+  fi
+
+  printf '%s\n' "$normalized"
+}
+
 tail -n +2 "$index_csv" | while IFS=, read -r slug title url year owner status notes; do
   slug="${slug//\"/}"
   url="${url//\"/}"
   [[ -z "$slug" || -z "$url" ]] && continue
+  download_url="$(to_pdf_url "$url")"
 
   paper_dir="$repo_root/papers/$slug"
   pdf_path="$paper_dir/paper.pdf"
@@ -32,9 +48,9 @@ tail -n +2 "$index_csv" | while IFS=, read -r slug title url year owner status n
     continue
   fi
 
-  echo "Downloading $slug"
-  if ! curl -L --fail --silent --show-error "$url" -o "$pdf_path"; then
-    echo "Failed to download $slug from $url" >&2
+  echo "Downloading $slug from $download_url"
+  if ! curl -L --fail --silent --show-error "$download_url" -o "$pdf_path"; then
+    echo "Failed to download $slug from $download_url" >&2
     rm -f "$pdf_path"
   fi
 done

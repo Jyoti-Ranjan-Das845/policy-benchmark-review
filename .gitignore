@@ -1,4 +1,9 @@
 .DS_Store
 *.log
 *.tmp
+.venv/
+.codex-home/
+papers/*/.status
+papers/*/review_prompt.md
+papers/*/NEXT_ACTION.md
 papers/*/*.bak
